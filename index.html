@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Document</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Alpine -->
+    <script defer src="https://unpkg.com/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    
+    <style type="text/tailwindcss">
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="pt-20 pl-20">
+ 
+    <div x-data="search">
+        <!-- Search input + button -->
+        <form x-on:submit.prevent x-on:keyup="doSearch">
+            <input type="search" id="query" name="q" placeholder="Search..." x-model="query">
+            <button type="button" @click="doSearch">Search</button>
+        </form>
+        <!-- Panel -->
+        <ul 
+            x-cloak x-show="open" @click.away="open = false" x-transition.origin.top.left
+            id="dropdown-panel" class=""
+        >
+            <template x-for="item in items">
+                <div class="flex flex-nowrap justify-between">
+                    <img :src="`${item.thumbnail}`">
+                    <!--<span x-text="item.thumbnail"></span>-->
+                    <span x-text="item.title"></span>
+                    <span x-text="item.price"></span>
+                </div>
+            </template>
+
+            <template x-if="!items">
+                <li>Ingen resultater</li>
+            </template>
+                        
+            
+        </ul>
+    </div>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('search', () => ({ 
+                    query: '', 
+                    loading: false, 
+                    items: null, 
+                    open: false,
+                    async doSearch() {
+                        this.open = ! this.open;
+                        if (this.query.length > 0) {
+                            this.loading = true;
+                            this.open = true;
+
+                            // Fetch
+                            const response = await fetch(
+                                `https://dummyjson.com/products/search?q=${this.query}`
+                            );
+                            const searchResult = await response.json();
+                            this.items = searchResult.products;
+                            // tjek om der er resultater
+                            if (this.items.length !== 0) {
+                                // hvis der ER resultater
+                                this.loading = false;
+                            } else {
+                                // hvis der IKKE er resultater
+                                this.items = null;
+                                this.loading = false;
+                            }
+                        } else {
+                            // fejlbesked: intet indtastet i søgefelt
+                            // document.write()
+                        }
+                    }
+                }))
+        })
+    </script>
+</body>
+</html>
